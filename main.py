@@ -1,4 +1,7 @@
 from evolutive_knn import EvolutiveKNN
+from banknote_loader import BanknoteLoader
 
-classifier = EvolutiveKNN([[1, 2, 3, 1], [1, 4, 2, 8], [1, 1, 2, 1]], [0, 1, 0])
+
+banknote = BanknoteLoader('./datasets/banknote.data')
+classifier = EvolutiveKNN(banknote.examples, banknote.labels)
 classifier.train()
