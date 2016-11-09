@@ -2,7 +2,6 @@ from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 from individual import Individual
 import random
-# from numba import jit
 
 class EvolutiveKNN:
     """Implementation of an evolutive version of KNN.
@@ -29,6 +28,14 @@ class EvolutiveKNN:
 
     """This method is responsible for training the evolutive KNN based on the
     given parameters
+
+    Parameters:
+        population_size: The size of the population.
+        mutation_rate: Chance of occuring a mutation on a individual.
+        max_generations: Stopping criteria, maximum number of generations.
+        max_accuracy: Stopping criteria, if an idividual have an accuracy bigger than max_accuracy the execution stops.
+        max_k: Maximum number of neighbors, if no max_k is provided the maximum possible is used.
+        max_weight: Maximum possible weight.
     """
     def train(self, population_size=100, mutation_rate=0.02, max_generations=50, max_accuracy=0.95, max_k=None, max_weight=10):
         self.population_size = population_size
@@ -77,7 +84,11 @@ class EvolutiveKNN:
         kneigh = KNeighborsClassifier(n_neighbors=element.k, weights=_element_weights)
         kneigh.fit(self.training_examples, self.training_labels)
         element.fitness = kneigh.score(self.test_examples, self.test_labels)
+        # print '-------'
+        # print element.k
+        # print element.weights
         # print element.fitness
+        # print '-------'
 
     def _create_test(self, tr_examples, tr_labels, test_size):
         self.training_examples = []
