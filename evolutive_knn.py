@@ -39,7 +39,7 @@ class EvolutiveKNN:
         elitism_rate: Elitism rate, percentage of best individuals that will be passed to another generation.
         tournament_size: The percentage of the non-elite population that will be selected at each tournament.
     """
-    def train(self, population_size=100, mutation_rate=0.02, max_generations=50, max_accuracy=0.95, max_k=None, max_weight=10, elitism_rate=0.1, tournament_size=0.25):
+    def train(self, population_size=5, mutation_rate=0.02, max_generations=50, max_accuracy=1.0, max_k=None, max_weight=10, elitism_rate=0.1, tournament_size=0.25):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.max_generations = max_generations
@@ -55,15 +55,17 @@ class EvolutiveKNN:
     def _train(self):
         population = self._start_population()
         self._calculate_fitness_of_population(population)
-        generations = 1
+        generations = 0
+        print generations
         while not self._should_stop(generations):
             generations += 1
+            print generations
             population = self._create_new_population(population)
             self._calculate_fitness_of_population(population)
 
     def _should_stop(self, generations):
         best_fitness = self.global_best.fitness
-        if max_generations > generations or best_fitness > self.max_accuracy:
+        if self.max_generations < generations or best_fitness > self.max_accuracy:
             return True
         return False
 
@@ -92,8 +94,34 @@ class EvolutiveKNN:
         selected = random.sample(
             xrange(number_of_individuals), number_of_individuals
         )
-        best = sorted(selected)
+        best = sorted(selected)[0]
         return population[best]
+
+    def _crossover(self, parent1, parent2):
+        k1 = parent1.k
+        k2 = parent2.k
+        k = self._random_between(k1, k2)
+        colaboration1 = int(k * (k1/(k1 + k2)))
+        colaboration2 = int(k * (k2/(k1 + k2)))
+        weights = parent1.weights[:colaboration1]
+        weights = weights + parent2.weights[colaboration2:]
+        mutate = random.uniform(0, 1)
+        if mutate < self.mutation_rate:
+            weights = self._mutate_weights(weights)
+        return Individual(k, weights)
+
+    def _random_between(self, number1, number2):
+        if random.randint(0,1) == 0:
+            result = number1
+        else:
+            result = number2
+        return result
+
+    def _mutate_weights(self, weights):
+        mutated = weights
+        index = random.randint(0, len(weights) - 1)
+        mutated[index] = random.randint(0, self.max_weight)
+        return mutated
     
     def _get_elite(self, population):
         return population[:self.elitism_real_value]
