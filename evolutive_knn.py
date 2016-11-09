@@ -27,12 +27,6 @@ class EvolutiveKNN:
             np.array(training_examples), np.array(training_labels), test_size
         )
 
-        print test_size
-        print self.training_examples
-        print self.training_labels
-        print self.test_examples
-        print self.test_labels
-
     """This method is responsible for training the evolutive KNN based on the
     given parameters
     """
@@ -70,7 +64,7 @@ class EvolutiveKNN:
 
     def _calculate_fitness_of_population(self, population):
         for index, element in enumerate(population):
-            print "element: ", index
+            # print "element: ", index
             self._calculate_fitness_of_individual(element)
             if self.global_best.fitness < element.fitness:
                 self.global_best = element
@@ -83,6 +77,7 @@ class EvolutiveKNN:
         kneigh = KNeighborsClassifier(n_neighbors=element.k, weights=_element_weights)
         kneigh.fit(self.training_examples, self.training_labels)
         element.fitness = kneigh.score(self.test_examples, self.test_labels)
+        # print element.fitness
 
     def _create_test(self, tr_examples, tr_labels, test_size):
         self.training_examples = []
