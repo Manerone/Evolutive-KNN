@@ -36,14 +36,19 @@ class EvolutiveKNN:
         max_accuracy: Stopping criteria, if an idividual have an accuracy bigger than max_accuracy the execution stops.
         max_k: Maximum number of neighbors, if no max_k is provided the maximum possible is used.
         max_weight: Maximum possible weight.
+        elitism_rate: Elitism rate, percentage of best individuals that will be passed to another generation.
+        tournament_size: The percentage of the non-elite population that will be selected at each tournament.
     """
-    def train(self, population_size=100, mutation_rate=0.02, max_generations=50, max_accuracy=0.95, max_k=None, max_weight=10):
+    def train(self, population_size=100, mutation_rate=0.02, max_generations=50, max_accuracy=0.95, max_k=None, max_weight=10, elitism_rate=0.1, tournament_size=0.25):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.max_generations = max_generations
         self.max_accuracy = max_accuracy
         self.max_k = max_k
         self.max_weight = max_weight
+        self.elitism_rate = elitism_rate
+        self.elitism_real_value = int(self.elitism_rate * self.population_size)
+        self.tournament_size = tournament_size
         self.global_best = Individual(1, [1])
         self._train()
 
@@ -51,11 +56,50 @@ class EvolutiveKNN:
         population = self._start_population()
         self._calculate_fitness_of_population(population)
         generations = 1
-        # enquanto nao tiver satisfeito condicao de parada
-        #   realizo crossovers
-        #   realizo mutacoes
-        #   realizo elitismo
-        #   calculo fitness da nova populacao
+        while not self._should_stop(generations):
+            generations += 1
+            population = self._create_new_population(population)
+            self._calculate_fitness_of_population(population)
+
+    def _should_stop(self, generations):
+        best_fitness = self.global_best.fitness
+        if max_generations > generations or best_fitness > self.max_accuracy:
+            return True
+        return False
+
+    def _create_new_population(self,old_population):
+        sorted_old_population = sorted(
+            old_population,
+            key=lambda individual: individual.fitness,
+            reverse=True
+        )
+        elite = self._get_elite(sorted_old_population)
+        non_elite = self._get_non_elite(sorted_old_population)
+        new_population = elite
+        while len(new_population) < self.population_size:
+            new_population.append(
+                self._generate_child(non_elite)
+            )
+        return new_population
+
+    def _generate_child(self, population):
+        parent1 = self._tournament(population)
+        parent2 = self._tournament(population)
+        return self._crossover(parent1, parent2)
+
+    def _tournament(self, population):
+        number_of_individuals = int(len(population) * self.tournament_size)
+        selected = random.sample(
+            xrange(number_of_individuals), number_of_individuals
+        )
+        best = sorted(selected)
+        return population[best]
+    
+    def _get_elite(self, population):
+        return population[:self.elitism_real_value]
+    
+    def _get_non_elite(self, population):
+        return population[self.elitism_real_value:]
 
     def _start_population(self):
         max_k = self.max_k
