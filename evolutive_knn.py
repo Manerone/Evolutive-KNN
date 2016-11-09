@@ -72,21 +72,18 @@ class EvolutiveKNN:
         for index, element in enumerate(population):
             print "element: ", index
             self._calculate_fitness_of_individual(element)
-            # if self.global_best.fitness < element.fitness:
-            #     self.global_best = element
+            if self.global_best.fitness < element.fitness:
+                self.global_best = element
 
     def _calculate_fitness_of_individual(self, element):
+
         def _element_weights(distances):
             return element.weights
+
         kneigh = KNeighborsClassifier(n_neighbors=element.k, weights=_element_weights)
         kneigh.fit(self.training_examples, self.training_labels)
-        print kneigh.score(self.test_examples, self.test_labels)
-        correct = 0
-        for index in xrange(len(self.test_labels)):
-            pred = kneigh.predict(self.test_examples[index])
-            if pred == self.test_labels[index]:
-                correct += 1
-        print "Accuracy: ", correct * 100 / float(len(self.test_labels))
+        element.fitness = kneigh.score(self.test_examples, self.test_labels)
+
     def _create_test(self, tr_examples, tr_labels, test_size):
         self.training_examples = []
         self.training_labels = [] 
