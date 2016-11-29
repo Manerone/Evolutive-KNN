@@ -35,10 +35,9 @@ for dataset in datasets():
     loader = DatasetLoader('./datasets/' + dataset)
     best_accuracies = []
     for i in xrange(NUMBER_OF_EXECUTIONS):
-        print_percent(dataset, i, NUMBER_OF_EXECUTIONS)
+        print_percent(dataset, i+1, NUMBER_OF_EXECUTIONS)
         classifier = EvolutiveKNN(loader.examples, loader.labels)
         classifier.train()
         best_accuracies.append(classifier.global_best.fitness)
-    print_percent(dataset, i+1, NUMBER_OF_EXECUTIONS)
     print ''
     save_results(dataset, best_accuracies)
