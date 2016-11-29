@@ -8,3 +8,6 @@ classifier.train()
 print classifier.global_best.k
 print classifier.global_best.weights
 print classifier.global_best.fitness
+print '-------------------'
+print map(lambda x: [x['individual'].fitness, x['generation']], classifier.hall_of_fame)
+print map(lambda x: x.fitness, classifier.best_of_each_generation)

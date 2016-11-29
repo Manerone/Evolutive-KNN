@@ -1,5 +1,6 @@
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
+import copy
 from individual import Individual
 import random
 
@@ -39,7 +40,7 @@ class EvolutiveKNN:
         elitism_rate: Elitism rate, percentage of best individuals that will be passed to another generation.
         tournament_size: The percentage of the non-elite population that will be selected at each tournament.
     """
-    def train(self, population_size=5, mutation_rate=0.02, max_generations=50, max_accuracy=1.0, max_k=None, max_weight=10, elitism_rate=0.1, tournament_size=0.25):
+    def train(self, population_size=50, mutation_rate=0.02, max_generations=50, max_accuracy=1.0, max_k=None, max_weight=10, elitism_rate=0.0, tournament_size=0.25):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.max_generations = max_generations
@@ -50,18 +51,20 @@ class EvolutiveKNN:
         self.elitism_real_value = int(self.elitism_rate * self.population_size)
         self.tournament_size = tournament_size
         self.global_best = Individual(1, [1])
+        self.hall_of_fame = []
+        self.best_of_each_generation = []
         self._train()
 
     def _train(self):
         population = self._start_population()
-        self._calculate_fitness_of_population(population)
         generations = 0
         print generations
+        self._calculate_fitness_of_population(population, generations)
         while not self._should_stop(generations):
             generations += 1
             print generations
             population = self._create_new_population(population)
-            self._calculate_fitness_of_population(population)
+            self._calculate_fitness_of_population(population, generations)
 
     def _should_stop(self, generations):
         best_fitness = self.global_best.fitness
@@ -69,7 +72,7 @@ class EvolutiveKNN:
             return True
         return False
 
-    def _create_new_population(self,old_population):
+    def _create_new_population(self, old_population):
         sorted_old_population = sorted(
             old_population,
             key=lambda individual: individual.fitness,
@@ -87,12 +90,20 @@ class EvolutiveKNN:
     def _generate_child(self, population):
         parent1 = self._tournament(population)
         parent2 = self._tournament(population)
-        return self._crossover(parent1, parent2)
+        kid = self._crossover(parent1, parent2)
+        # print 'CROSSOVER'
+        # print parent1.k, parent1.weights
+        # print '-------------'
+        # print parent2.k, parent2.weights
+        # print '--------------'
+        # print kid.k, kid.weights
+        # print '=--------------='
+        return kid
 
     def _tournament(self, population):
         number_of_individuals = int(len(population) * self.tournament_size)
         selected = random.sample(
-            xrange(number_of_individuals), number_of_individuals
+            xrange(len(population)), number_of_individuals
         )
         best = sorted(selected)[0]
         return population[best]
@@ -101,10 +112,11 @@ class EvolutiveKNN:
         k1 = parent1.k
         k2 = parent2.k
         k = self._random_between(k1, k2)
-        colaboration1 = int(k * (k1/(k1 + k2)))
-        colaboration2 = int(k * (k2/(k1 + k2)))
-        weights = parent1.weights[:colaboration1]
-        weights = weights + parent2.weights[colaboration2:]
+        colaboration1 = int(np.floor(k * (k1/float(k1 + k2))))
+        colaboration2 = int(np.ceil(k * (k2/float(k1 + k2))))
+        weights_p1 = random.sample(parent1.weights, colaboration1)
+        weights_p2 = random.sample(parent2.weights, colaboration2)
+        weights = weights_p1 + weights_p2
         mutate = random.uniform(0, 1)
         if mutate < self.mutation_rate:
             weights = self._mutate_weights(weights)
@@ -122,10 +134,10 @@ class EvolutiveKNN:
         index = random.randint(0, len(weights) - 1)
         mutated[index] = random.randint(0, self.max_weight)
         return mutated
-    
+
     def _get_elite(self, population):
         return population[:self.elitism_real_value]
-    
+
     def _get_non_elite(self, population):
         return population[self.elitism_real_value:]
 
@@ -141,12 +153,21 @@ class EvolutiveKNN:
             population.append(Individual(k, weights))
         return population
 
-    def _calculate_fitness_of_population(self, population):
-        for index, element in enumerate(population):
-            # print "element: ", index
+    def _calculate_fitness_of_population(self, population, generation):
+        population_best = Individual(1, [1])
+        for element in population:
             self._calculate_fitness_of_individual(element)
-            if self.global_best.fitness < element.fitness:
-                self.global_best = element
+            if population_best.fitness < element.fitness:
+                population_best = copy.deepcopy(element)
+        self.best_of_each_generation.append(population_best)
+        if self.global_best.fitness < population_best.fitness:
+                self._change_global_best(population_best, generation)
+
+    def _change_global_best(self, element, generation):
+        self.hall_of_fame.append(
+            {'individual': element, 'generation': generation}
+        )
+        self.global_best = element
 
     def _calculate_fitness_of_individual(self, element):
 
