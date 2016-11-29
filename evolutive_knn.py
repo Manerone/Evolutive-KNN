@@ -65,7 +65,7 @@ class EvolutiveKNN:
 
     def _should_stop(self, generations):
         best_fitness = self.global_best.fitness
-        if self.max_generations < generations or best_fitness > self.max_accuracy:
+        if self.max_generations < generations or best_fitness >= self.max_accuracy:
             return True
         return False
 
