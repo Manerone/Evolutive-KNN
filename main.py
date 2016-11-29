@@ -1,5 +1,6 @@
 from evolutive_knn import EvolutiveKNN
 from dataset_loader import DatasetLoader
+import numpy as np
 import json
 import os
 import sys
