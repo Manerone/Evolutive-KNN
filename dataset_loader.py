@@ -1,4 +1,4 @@
-class BanknoteLoader:
+class DatasetLoader:
     def __init__(self, path):
         self.examples = []
         self.labels = []
