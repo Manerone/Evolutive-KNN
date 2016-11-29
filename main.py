@@ -23,12 +23,13 @@ def save_results(dataset, accuracies):
     data = {
         'accuracies': accuracies,
         'average': np.mean(accuracies),
-        'standard deviation': np.std(accuracies)
+        'standard deviation': np.std(accuracies),
+        'number of executions': len(accuracies)
     }
     if not os.path.exists('./results/'):
         os.makedirs('./results/')
     with open('./results/' + dataset + '.json', 'w') as file:
-        json.dump(data, file)
+        json.dump(data, file, sort_keys=True, indent=4)
 
 for dataset in datasets():
     loader = DatasetLoader('./datasets/' + dataset)
