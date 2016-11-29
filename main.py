@@ -14,7 +14,7 @@ def datasets():
 
 def print_percent(dataset, current, total):
     sys.stdout.write("\033[K")
-    percent = int((i+1.0)*100/total)
+    percent = int(i*100.0/total)
     sys.stdout.write("\r" + dataset + ': ' + str(percent) + '%')
     sys.stdout.flush()
 
@@ -25,6 +25,8 @@ def save_results(dataset, accuracies):
         'average': np.mean(accuracies),
         'standard deviation': np.std(accuracies)
     }
+    if not os.path.exists('./results/'):
+        os.makedirs('./results/')
     with open('./results/' + dataset + '.json', 'w') as file:
         json.dump(data, file)
 
@@ -36,5 +38,6 @@ for dataset in datasets():
         classifier = EvolutiveKNN(loader.examples, loader.labels)
         classifier.train()
         best_accuracies.append(classifier.global_best.fitness)
+    print_percent(dataset, i+1, NUMBER_OF_EXECUTIONS)
     print ''
     save_results(dataset, best_accuracies)
