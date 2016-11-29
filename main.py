@@ -18,7 +18,7 @@ def print_percent(dataset, current, total):
     sys.stdout.flush()
 
 
-def best_accuracies(dataset, accuracies):
+def save_results(dataset, accuracies):
     data = {
         'accuracies': accuracies,
         'average': np.mean(accuracies),
