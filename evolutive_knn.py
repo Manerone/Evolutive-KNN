@@ -113,7 +113,7 @@ class EvolutiveKNN:
         k2 = parent2.k
         k = self._random_between(k1, k2)
         colaboration1 = int(np.floor(k * (k1/float(k1 + k2))))
-        colaboration2 = int(np.ceil(k * (k2/float(k1 + k2))))
+        colaboration2 = k - colaboration1
         weights_p1 = random.sample(parent1.weights, colaboration1)
         weights_p2 = random.sample(parent2.weights, colaboration2)
         weights = weights_p1 + weights_p2
